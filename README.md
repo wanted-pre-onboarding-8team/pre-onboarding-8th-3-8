@@ -85,28 +85,25 @@ yarn server
 
 ```javascript
 
-        <WordBox ref={keyboardRef}>
-          {inputValue !== '' && list?.length !== 0 ? (
-            list?.map((word, idx) => {
-              const keyValue = word?.sickCd;
-              return word?.sickNm.includes(inputValue) ? (
-                <Words
-                  key={keyValue}
-                  isFocus={index === idx ? true : false}
-                >
-                  <ImgBox>
-                    <img src={require('images/searching_btn_black.png')} alt="검색하기" />
-                  </ImgBox>
-                  <span>{word?.sickNm.split(inputValue)[0]} </span>
-                  <span style={{ fontWeight: 'bolder' }}>{inputValue}</span>
-                  <span>{word?.sickNm.split(inputValue)[1]}</span>
-                </Words>
-              ) : null;
-            })
-          ) : (
-            <span>검색어 없음</span>
-          )}
-        </WordBox>
+const RelatedSearchTerm = ({ name, idx }) => {
+  const { searchWord, recommendWordIndex } = useSelector(state => state.search);
+  const _name = name.split(searchWord);
+
+  return (
+    <List className={idx === recommendWordIndex ? 'over' : ''}>
+      <FontAwesomeIcon icon={faMagnifyingGlass} />
+      <Name>
+        <span>{_name[0]}</span>
+        {_name[0][_name[0].length - 1] === ' ' ? (
+          <BoldName>&nbsp;{searchWord}</BoldName>
+        ) : (
+          <BoldName>{searchWord}</BoldName>
+        )}
+        <span>{_name[1]}</span>
+      </Name>
+    </List>
+  );
+};
 
 ```
 
@@ -131,51 +128,45 @@ yarn server
 
 ```javascript
 
-export const getkeywordList = createAsyncThunk('GET_KEYWORD_LIST', async keyword => {
+const handleSearchSick = useCallback(async () => {
+    const URL = `http://localhost:4000/sick?q=${searchWord}`;
+    const cacheStorage = await caches.open('search');
+    const responseCache = await cacheStorage.match(URL);
 
-  const url = instance.defaults.baseURL + `/sick?q=${keyword}`;
-  const cacheStorage = await caches.open('searched_word');
-  const responsedCache = await cacheStorage.match(url);
-
-  try {
-    if (responsedCache) {
-      console.log('캐시 사용');
-      return responsedCache.json();
-    } 
-  else {
-      const res = await instance.get(`/sick?q=${keyword}`);
-      await cacheStorage.add(url);
-      console.info('calling api');
-      return res.data;
+    // 브라우저 캐시 스토리지에 있을 경우
+    if (responseCache?.status === 200) {
+      await cacheStorage
+        .match(URL)
+        .then(res => res.json())
+        .then(sickList => setSickList(sickList));
     }
-  } catch (err) {
-    console.log(err);
-  }
-
-});
+    // 브라우저 캐시 스토리지에 없을 경우
+    else {
+      await getSick(searchWord).then(res => {
+        setSickList(res.data);
+        cacheStorage.put(URL, new Response(JSON.stringify(res.data)));
+      });
+    }
+  }, [searchWord]);
 
 ```
 * **'useDebounce' Hook** 을 사용하여 각 입력사이에 delay(500ms)를 주어, API 호출 횟수를 줄이도록 구현하였습니다.
 
 
 ```javascript
-import { useEffect, useState } from 'react';
 
-export const useDebounce = (value, delay) => {
-  const [debounceValue, setDebounceValue] = useState();
+useEffect(() => {
+    if (!!searchWord) setSickList([]);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebounceValue(value);
-    }, delay);
+    const debounce = setTimeout(() => {
+      handleSearchSick();
+      setInputEntering(false);
+    }, 500);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(debounce);
     };
-  }, [value]);
-
-  return debounceValue;
-};
+  }, [searchWord, handleSearchSick]);
 
 ```
 
@@ -191,7 +182,26 @@ export const useDebounce = (value, delay) => {
 
 ```javascript
 
-
+const onKeyPress = e => {
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      console.log(recommendWordIndex);
+      // 첫 키 입력 시
+      if (recommendWordIndex === null) {
+        dispatch(OPERATION_RECOMMEND_WORD_INDEX(0));
+      }
+      // 맨 위에서 위, 맨 아래에서 아래를 눌렀을 때 아무것도 안함
+      else if (recommendWordIndex === 0 && e.key === 'ArrowUp') {
+        return;
+      } else if (recommendWordIndex === sickList.length - 1 && e.key === 'ArrowDown') {
+        return;
+      }
+      // 키 입력시 증감
+      else {
+        dispatch(OPERATION_RECOMMEND_WORD_INDEX(e.key));
+      }
+    }
+  };
+  
 ```
 
 <br>

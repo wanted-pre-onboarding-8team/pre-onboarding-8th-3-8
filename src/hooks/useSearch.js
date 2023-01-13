@@ -41,10 +41,6 @@ const useSearch = () => {
     };
   }, [searchWord, handleSearchSick]);
 
-  useEffect(() => {
-    console.log('sickList length = ' + sickList.length);
-  }, [sickList]);
-
   return { inputEntering, setInputEntering, sickList, handleSearchSick };
 };
 

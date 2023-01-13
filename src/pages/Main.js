@@ -35,9 +35,6 @@ const Main = () => {
         dispatch(OPERATION_RECOMMEND_WORD_INDEX(e.key));
       }
     }
-
-    if (e.key === 'Enter') {
-    }
   };
 
   return (

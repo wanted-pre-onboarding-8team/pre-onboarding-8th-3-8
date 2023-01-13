@@ -6,12 +6,10 @@
 
 ## 📄목차
 ---
-- [🗓️ Todo List Best Practice](#️-todo-list-best-pratice)
-  - [📄목차](#목차)
   - [📚 사용 라이브러리](#-사용-라이브러리)
   - [🏃‍♂️ 실행방법](#️-실행방법)
-  - [💡 구현목표](#-설계-전략)
-    - [1. Issue의 CRUD 구현 ](#1-질환명-검색시-api-호출-통해서-검색어-추천-기능-구현)
+  - [💡 구현목표](#💡-구현-목표)
+    - [1. 질환명 검색시 API 호출 통해서 검색어 추천 기능 구현 ](#1-질환명-검색시-api-호출-통해서-검색어-추천-기능-구현)
     - [2. API 호출 최적화](#2-api-호출-최적화)
     - [3. 키보드만으로 추천 검색어들로 이동 가능하도록 구현](#3-키보드만으로-추천-검색어들로-이동-가능하도록-구현)
 
@@ -79,9 +77,7 @@ yarn server
 
 **Component**
 
-  * 사용자가 입력한 텍스트( inputValue )를 기준으로 각 추천 검색어의 문자열을 split 메서드를 사용하여 나누어준 후, inputValue 부분에만 CSS 처리를 해주어 Bold 효과를 주었습니다.
-
-  * '검색창이 비어 있거나, 추천 검색어 data를 담은 배열의 길이가 0일 때(추천검색어가 없을 때)' '검색어 없음'을 표출하도록 삼항연산자를 사용하여 조건부 랜더링을 구현하였습니다.
+  * 각 '추천 검색어'의 문자열을 '사용자가 입력한 텍스트( SearchWord )' 를 기준으로  split 메서드를 사용하여 나누어준 후, SearchWord 부분에만 CSS 처리를 해주어 Bold 효과를 줌
 
 ```javascript
 
@@ -122,8 +118,9 @@ const RelatedSearchTerm = ({ name, idx }) => {
 
 **Component**
  
- * **Cache API**를 사용하여 로컬 로컬 캐싱을 구현함.
- * 로컬 브라우저의 cacheStorage를 이용하여 호출했던 API의 URL과 matching하여 일치
+ * **Cache API**를 사용하여 로컬 캐싱 기능 구현
+
+ * 로컬 브라우저의 **cacheStorage**에 이전에 호출하여 저장한 API URL과 현재 요청한 API URL을 비교한 후, 두 URL이 matching 될 경우 **캐싱 데이터**를 사용하고, matching 되지 않을 경우 **API 호출**하도록 구현
   
 
 ```javascript
@@ -150,7 +147,7 @@ const handleSearchSick = useCallback(async () => {
   }, [searchWord]);
 
 ```
-* **'useDebounce' Hook** 을 사용하여 각 입력사이에 delay(500ms)를 주어, API 호출 횟수를 줄이도록 구현하였습니다.
+* **'useSearch' Hook** 에서 Debounce 기능을 넣어 각 입력 사이에 delay(500ms)를 주어, API 호출 횟수를 줄임
 
 
 ```javascript
@@ -174,11 +171,11 @@ useEffect(() => {
 
 ### 3. 키보드만으로 추천 검색어들로 이동 가능하도록 구현
 
-  * 
-
+<br>
 
 **Component**
-* 
+
+* 검색창에 **onKeyDown 이벤트**를 사용하여 키보드의 위(ArrouUP), 아래(ArrowDown) 버튼의 이동에 따라 **recommendWordIndex** State 값을 바꿔주어 추천 검색어의 키보드 이동이 가능하도록 구현
 
 ```javascript
 
